@@ -1,0 +1,43 @@
+<div
+  class="h-screen m-0 p-0 flex flex-col bg-zinc-100 w-90 text-center border-r-1 border-gray-200"
+>
+  <h2
+    class="text-5xl font-extrabold text-sky-500 mt-2 cursor-pointer"
+    (click)="goToHome()"
+  >
+    Bulletin
+  </h2>
+  <hr
+    class="mt-4 mb-4 w-80 border-t border-stone-200 dark:border-stone-600 self-center"
+  />
+  @if (isBulletin() || isCreate()) { <app-user-form />} @else {
+  <button
+    class="text-3xl ml-4 font-bold text-neutral-700 mt-2 cursor-pointer self-baseline"
+    (click)="goToHome()"
+  >
+    Home
+  </button>
+  <hr class="mt-2 mb-4 w-80 border-t border-stone-300 self-center" />
+  <button
+    class="text-3xl ml-4 font-bold text-neutral-700 mt-2 cursor-pointer self-baseline"
+    (click)="goToAbout()"
+  >
+    About
+  </button>
+  <hr class="mt-2 mb-4 w-80 border-t border-stone-300 self-center" />
+  <button
+    class="text-3xl ml-4 font-bold text-neutral-700 mt-2 cursor-pointer self-baseline"
+    (click)="goToBulletin()"
+  >
+    Bulletin
+  </button>
+  <hr class="mt-2 mb-4 w-80 border-t border-stone-300 self-center" />
+  <button
+    class="text-3xl ml-4 font-bold text-neutral-700 mt-2 cursor-pointer self-baseline"
+    (click)="goToCreate()"
+  >
+    Create
+  </button>
+  <hr class="mt-2 mb-4 w-80 border-t border-stone-300 self-center" />
+  }
+</div>

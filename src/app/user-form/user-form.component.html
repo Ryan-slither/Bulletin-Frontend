@@ -1,0 +1,36 @@
+<form
+  (ngSubmit)="onSubmit()"
+  #userForm="ngForm"
+  class="flex flex-col text-left m-2 mb-1"
+>
+  <label class="text-2xl font-bold text-neutral-600">Email</label>
+  <input
+    type="email"
+    id="email"
+    name="email"
+    placeholder="Email..."
+    class="outline-0 bg-white p-2 mt-2 mb-2 border-neutral-200 border-1 rounded-lg drop-shadow-sm"
+    [(ngModel)]="user.email"
+    required
+    email
+  />
+  <label class="text-2xl font-bold text-neutral-600 mt-2">Password</label>
+  <input
+    type="password"
+    id="password"
+    name="password"
+    placeholder="Password..."
+    class="outline-0 bg-white p-2 mt-2 mb-2 border-neutral-200 border-1 rounded-lg drop-shadow-sm"
+    [(ngModel)]="user.password"
+    required
+    minlength="8"
+    maxlength="30"
+  />
+  <button
+    type="submit"
+    [disabled]="userForm.invalid"
+    class="text-2xl font-bold text-white mt-2 bg-sky-400 p-1 border-1 rounded-xl drop-shadow-sm enabled:hover:bg-white hover: enabled:hover:text-sky-400 enabled:cursor-pointer disabled:cursor-not-allowed"
+  >
+    Log In
+  </button>
+</form>
