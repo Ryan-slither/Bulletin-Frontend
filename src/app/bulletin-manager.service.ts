@@ -1,5 +1,10 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import { BehaviorSubject, filter, map, Observable, take } from 'rxjs';
+import { environment } from '../environments/environment.dev';
+import { Router } from '@angular/router';
+import { UserService } from './user.service';
+import Bulletin from '../types/Bulletin';
 
 export interface Thing {
   id: string;
@@ -10,116 +15,107 @@ export interface Thing {
   liked: boolean;
 }
 
-const mockThings: Thing[] = [
-  {
-    id: '1',
-    canEdit: true,
-    canDelete: true,
-    text: 'First item - editable and deletable only',
-    likes: 0,
-    liked: false,
-  },
-  {
-    id: '2',
-    canEdit: false,
-    canDelete: true,
-    text: 'Second item - can delete and approve',
-    likes: 10,
-    liked: true,
-  },
-  {
-    id: '3',
-    canEdit: true,
-    canDelete: false,
-    text: 'Third item - can edit and approve',
-    likes: 50,
-    liked: false,
-  },
-  {
-    id: '4',
-    canEdit: false,
-    canDelete: false,
-    text: 'Fourth item - view only',
-    likes: 100,
-    liked: false,
-  },
-  {
-    id: '5',
-    canEdit: true,
-    canDelete: true,
-    text: 'Fifth item - full permissions',
-    likes: 500,
-    liked: true,
-  },
-];
-
 @Injectable({
   providedIn: 'root',
 })
 export class BulletinManagerService {
-  constructor() {}
 
-  private thingsSubject = new BehaviorSubject<Thing[]>(mockThings);
-  things$ = this.thingsSubject.asObservable();
+  constructor(private router: Router, private userService: UserService) { }
+
+  private http = inject(HttpClient)
+
+  private thingsSubject = new BehaviorSubject<Thing[] | null>(null);
 
   isAdding = false;
 
   getIsAdding = () => {
+
     return this.isAdding;
+
   };
 
   setIsAdding = (adding: boolean) => {
+
     this.isAdding = adding;
+
   };
 
-  getThings = () => {
-    return this.thingsSubject.getValue();
+  get things$(): Observable<Thing[] | null> {
+
+    return this.thingsSubject.asObservable();
+
   };
 
-  likeThing = (thingId: string) => {
-    const newThings = this.getThings().map((thing) => {
-      if (thing.id === thingId && thing.liked === false) {
-        thing.likes = thing.likes + 1;
-        thing.liked = true;
+  private setThings(things: Thing[] | null) {
+
+    this.thingsSubject.next(things)
+
+  }
+
+  joinBulletin = (joinCode: string) => {
+
+    this.http.post(environment.apiBaseUrl + "/api/v1/bulletin/join/" + joinCode, {}).subscribe({
+
+      next: (response) => {
+
+        this.router.navigate(["/bulletin/" + response])
+        this.userService.getUserBulletins()
+
+      },
+
+      error: (err) => {
+
+        console.log(err)
+
       }
-      return thing;
-    });
-    this.thingsSubject.next(newThings);
-    return true;
-  };
 
-  unlikeThing = (thingId: string) => {
-    const newThings = this.getThings().map((thing) => {
-      if (thing.id === thingId && thing.liked === true) {
-        thing.likes = thing.likes - 1;
-        thing.liked = false;
+    })
+
+  }
+
+  createBulletin = (title: string, limit: number) => {
+
+    this.userService.user$.pipe(take(1)).subscribe(user => {
+
+      this.http.post<Bulletin>(environment.apiBaseUrl + "/api/v1/bulletin", { title: title, memberLimit: limit, userId: user?.id }).subscribe({
+
+        next: (response) => {
+
+          this.userService.getUserBulletins()
+          this.router.navigate(["/bulletin/" + response.id])
+
+        },
+
+        error: (err) => {
+
+          console.error(err)
+
+        }
+
+      })
+
+    })
+
+  }
+
+  getThingsByBulletin = (bulletinId: number) => {
+
+    this.http.get<Thing[]>(environment.apiBaseUrl + "api/v1/thing/things?bulletinId=" + bulletinId).subscribe({
+
+      next: (response) => {
+
+        this.setThings(response)
+
+      },
+
+      error: (err) => {
+
+        console.error(err)
+
       }
-      return thing;
-    });
-    this.thingsSubject.next(newThings);
-    return true;
-  };
 
-  addThing = (thing: Thing) => {
-    const newThings = [...this.getThings(), thing];
-    this.thingsSubject.next(newThings);
-    return true;
-  };
+    })
 
-  editThing = (thingId: string, thingText: string) => {
-    const newThings = this.getThings().map((thing) => {
-      if (thing.id === thingId) {
-        thing.text = thingText;
-      }
-      return thing;
-    });
-    this.thingsSubject.next(newThings);
-    return true;
-  };
+  }
 
-  removeThing = (thingId: string) => {
-    const newThings = this.getThings().filter((thing) => thing.id !== thingId);
-    this.thingsSubject.next(newThings);
-    return true;
-  };
 }

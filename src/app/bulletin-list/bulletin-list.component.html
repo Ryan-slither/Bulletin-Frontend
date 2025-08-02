@@ -1,0 +1,28 @@
+<div class="m-2">
+
+    <h2 class="text-1xl font-bold leading-none tracking-tight text-sky-500 md:text-2xl lg:text-3xl">
+        Your Bulletins
+    </h2>
+
+    @if (this.userService.bulletins$ | async; as bulletins) {
+
+    <ul class="text-left mt-3 pl-4 pt-2 pb-2 border border-stone-300 rounded-lg">
+        @for (bulletin of bulletins; track bulletin.id) {
+
+        <a class="text-sm font-bold leading-none tracking-tight text-sky-500 md:text-md lg:text-lg underline"
+            [href]="'/bulletin/' + bulletin.id">
+            <li class="m-3">
+                {{ bulletin.title }}{{ ': ' }}{{ bulletin.timeCreated }}
+            </li>
+        </a>
+
+        }
+    </ul>
+
+    } @else {
+
+    <p class="text-sm font-bold leading-none tracking-tight text-sky-500 md:text-md lg:text-lg">You are not part of any
+        bulletins yet.</p>
+
+    }
+</div>
