@@ -5,20 +5,15 @@ import { environment } from '../environments/environment.dev';
 import { Router } from '@angular/router';
 import { UserService } from './user.service';
 import Bulletin from '../types/Bulletin';
-
-export interface Thing {
-  id: string;
-  canEdit: boolean;
-  canDelete: boolean;
-  text: string;
-  likes: number;
-  liked: boolean;
-}
+import { WebSocketClient } from './websocket.service';
+import Thing from '../types/Thing';
 
 @Injectable({
   providedIn: 'root',
 })
 export class BulletinManagerService {
+
+  private thingWSService: WebSocketClient | null = null
 
   constructor(private router: Router, private userService: UserService) { }
 
@@ -100,7 +95,7 @@ export class BulletinManagerService {
 
   getThingsByBulletin = (bulletinId: number) => {
 
-    this.http.get<Thing[]>(environment.apiBaseUrl + "api/v1/thing/things?bulletinId=" + bulletinId).subscribe({
+    this.http.get<Thing[]>(environment.apiBaseUrl + "/api/v1/thing/things?bulletinId=" + bulletinId).subscribe({
 
       next: (response) => {
 
@@ -111,6 +106,50 @@ export class BulletinManagerService {
       error: (err) => {
 
         console.error(err)
+
+      }
+
+    })
+
+  }
+
+  initializeThingWSService = (topic: string, url: string): void => {
+
+    const initializeSubscription = this.userService.user$.subscribe(user => {
+
+      if (!user) {
+
+        return
+
+      }
+
+      this.thingWSService = new WebSocketClient(topic, url, this.onThingWSMessage, user?.token)
+      initializeSubscription.unsubscribe()
+
+    })
+
+  }
+
+  onThingWSMessage = (message: Thing): void => {
+
+    this.things$.pipe(take(1)).subscribe(things => {
+
+      const updatedThings = things?.filter(thing => thing.id != message.id)
+
+      // Preserves Deletes
+      if (message.bulletinId == null && message.userId == null) {
+
+        return
+
+      }
+
+      if (updatedThings != null) {
+
+        this.setThings([...updatedThings, message])
+
+      } else {
+
+        this.setThings([message])
 
       }
 

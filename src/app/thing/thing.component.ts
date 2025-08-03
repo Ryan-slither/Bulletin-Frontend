@@ -1,6 +1,7 @@
 import { Component, Input } from '@angular/core';
-import { BulletinManagerService, Thing } from '../bulletin-manager.service';
+import { BulletinManagerService } from '../bulletin-manager.service';
 import { FormsModule } from '@angular/forms';
+import Thing from '../../types/Thing';
 
 @Component({
   selector: 'app-thing',
@@ -9,78 +10,92 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './thing.component.css',
 })
 export class ThingComponent {
-  constructor(private bulletinManagerService: BulletinManagerService) {}
 
-  @Input() canEdit = false;
+  constructor(private bulletinManagerService: BulletinManagerService) { }
 
-  @Input() canDelete = false;
+  @Input() isAdding = false
 
-  @Input() canApprove = false;
+  @Input() content = ''
+  thingContent = ''
 
-  @Input() isAdding = false;
+  @Input() id = ''
 
-  @Input() text = '';
-  thingText = '';
+  @Input() likes = -1
 
-  @Input() id = '';
+  @Input() liked = false
 
-  @Input() likes = -1;
+  @Input() userId = -1
 
-  @Input() liked = false;
+  @Input() currentUserId = -1
 
   ngOnChanges() {
-    this.thingText = this.text;
+
+    this.thingContent = this.content
+
   }
 
-  isEditing = false;
+  get isOwner(): boolean {
 
-  onLike = (thingId: string) => {
-    if (this.liked) {
-      if (!this.bulletinManagerService.unlikeThing(thingId)) {
-        alert('Could Not Unlike Thing');
-      }
-    } else {
-      if (!this.bulletinManagerService.likeThing(thingId)) {
-        alert('Could Not Like Thing');
-      }
-    }
+    return this.userId == this.currentUserId
+
+  }
+
+  isEditing = false
+
+  onLike = () => {
+
+    // Call Bulletin Service To Create Like
+
   };
 
-  onRemove = (thingId: string) => {
+  onRemove = () => {
+
     if (this.isEditing) {
-      this.isEditing = false;
-      this.thingText = this.text;
-      return;
+
+      this.isEditing = false
+      this.thingContent = this.content
+      return
+
     }
-    if (!this.bulletinManagerService.removeThing(thingId)) {
-      alert('Could Not Remove Thing');
-    }
-    this.bulletinManagerService.setIsAdding(false);
+
+    // Call Bulletin Service To Delete
+
+    this.bulletinManagerService.setIsAdding(false)
+
   };
 
   onEdit = () => {
-    this.isEditing = true;
+
+    this.isEditing = true
+
   };
 
-  onSubmit = (thingText: string) => {
+  onSubmit = () => {
+
     if (this.isEditing) {
-      this.isEditing = false;
-      if (!this.bulletinManagerService.editThing(this.id, thingText)) {
-        alert('Could Not Add Thing');
-      }
-      return;
+
+      this.isEditing = false
+
+      // Call Bulletin Service To Update Thing
+
+      return
+
     }
-    const newThing: Thing = {
-      text: thingText,
-      id: 'adding',
-      canEdit: true,
-      canDelete: true,
-      likes: 0,
-      liked: false,
-    };
-    if (!this.bulletinManagerService.addThing(newThing)) {
-      alert('Could Not Add Thing');
+
+    const editingThing: Thing = {
+
+      content: this.thingContent,
+      id: -1,
+      bulletinId: -1,
+      userId: -1,
+      timeCreated: "",
+
     }
-    this.bulletinManagerService.setIsAdding(false);
-  };
+
+    // Call Bulletin Service To Add Thing
+
+    this.bulletinManagerService.setIsAdding(false)
+
+  }
+
 }

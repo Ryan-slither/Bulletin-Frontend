@@ -67,7 +67,7 @@ export class UserService {
 
       next: (response) => {
 
-        this.setUser(response)
+        this.setUser({ ...response, token: "" })
         alert("Please verify your email by clicking the link sent to the address you used during sign-up. Once verified, you may log in to access the platform.")
 
       },
@@ -98,8 +98,11 @@ export class UserService {
         localStorage.setItem("authToken", response.token)
 
         this.setUser({
+
           id: response.id,
-          timeCreated: response.timeCreated
+          timeCreated: response.timeCreated,
+          token: response.token
+
         })
 
       },
@@ -122,8 +125,11 @@ export class UserService {
       next: (response) => {
 
         this.setUser({
+
           id: response.id,
-          timeCreated: response.timeCreated
+          timeCreated: response.timeCreated,
+          token: localStorage.getItem("authToken") ?? ""
+
         })
 
       },
@@ -154,6 +160,8 @@ export class UserService {
         }))
         this.setBulletins(processedBulletinsDates)
 
+        console.log(processedBulletinsDates)
+
       },
 
       error: (err) => {
@@ -178,7 +186,5 @@ export class UserService {
     this.setUser(null)
 
   }
-
-
 
 }

@@ -7,10 +7,13 @@
   </h1>
   <div class="flex flex-row flex-wrap gap-2">
     @if (isAdding) {
-    <app-thing text="" id="editing" [isAdding]="true"></app-thing>
-    } @for (thing of things; track thing.id) {
-    <app-thing [canEdit]="thing.canEdit" [canDelete]="thing.canDelete" [text]="thing.text" [id]="thing.id"
-      [likes]="thing.likes" [liked]="thing.liked"></app-thing>
+    <app-thing content="" id="editing" [isAdding]="true"></app-thing>
+    }
+    @if (this.bulletinManagerService.things$ | async; as things) {
+    @for (thing of things; track thing.id) {
+    <app-thing [content]="thing.content" [id]="thing.id.toString()" [userId]="thing.userId"
+      [currentUserId]="userId ?? -1"></app-thing>
+    }
     }
   </div>
   <button

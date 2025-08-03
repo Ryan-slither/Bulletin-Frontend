@@ -1,14 +1,15 @@
-import { BulletinManagerService, Thing } from './../bulletin-manager.service';
-import { Component, Input, OnInit } from '@angular/core';
+import { BulletinManagerService } from './../bulletin-manager.service';
+import { Component, OnInit } from '@angular/core';
 import { ThingComponent } from '../thing/thing.component';
 import { UserService } from '../user.service';
-import { map, Subscription } from 'rxjs';
+import { map, Subscription, take } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import Bulletin from '../../types/Bulletin';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-bulletin',
-  imports: [ThingComponent],
+  imports: [ThingComponent, CommonModule],
   providers: [BulletinManagerService],
   templateUrl: './bulletin.component.html',
   styleUrl: './bulletin.component.css',
@@ -16,12 +17,14 @@ import Bulletin from '../../types/Bulletin';
 export class BulletinComponent implements OnInit {
 
   constructor(
-    private bulletinManagerService: BulletinManagerService,
+    public bulletinManagerService: BulletinManagerService,
     private userService: UserService,
     private route: ActivatedRoute
   ) { }
 
   private id: number | null = null
+
+  public userId: number | null = null
 
   currentBulletin: Bulletin | undefined
 
@@ -30,6 +33,21 @@ export class BulletinComponent implements OnInit {
   ngOnInit(): void {
 
     this.id = parseInt(this.route.snapshot.paramMap.get('id') ?? "")
+
+    const userIdSubscription = this.userService.user$.subscribe(user => {
+
+      if (user) {
+
+        this.userId = user?.id
+        userIdSubscription.unsubscribe()
+
+      } else {
+
+        return
+
+      }
+
+    })
 
     this.bulletinSubscription = this.userService.bulletins$.subscribe(bulletins => {
 
@@ -46,6 +64,10 @@ export class BulletinComponent implements OnInit {
       })
 
     })
+
+    this.bulletinManagerService.getThingsByBulletin(this.id)
+
+    this.bulletinManagerService.initializeThingWSService("/topic/" + this.id, "ws://localhost:8080/ws/thing")
 
   }
 
